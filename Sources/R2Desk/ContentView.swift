@@ -398,8 +398,11 @@ struct ObjectBrowserView: View {
         .overlay {
             if state.isDropTargeted {
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(.blue.opacity(0.12))
-                    .stroke(.blue.opacity(0.55), style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    .fill(Color.blue.opacity(0.12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .strokeBorder(Color.blue.opacity(0.55), style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    )
                     .overlay {
                         Label(L10n.t("drop_to_upload"), systemImage: "square.and.arrow.up")
                             .font(.title2.weight(.semibold))
