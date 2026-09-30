@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "R2Desk",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v13)
     ],
     products: [
         .executable(name: "R2Desk", targets: ["R2Desk"]),

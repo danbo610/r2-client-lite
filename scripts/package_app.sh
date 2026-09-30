@@ -11,8 +11,9 @@ RESOURCES_DIR="$CONTENTS_DIR/Resources"
 
 cd "$ROOT_DIR"
 
-swift build -c release
-BIN_DIR="$(swift build -c release --show-bin-path)"
+ARCH="${ARCH:-x86_64}"
+swift build -c release --arch "$ARCH"
+BIN_DIR="$(swift build -c release --arch "$ARCH" --show-bin-path)"
 
 rm -rf "$DIST_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
@@ -20,6 +21,7 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 cp "$BIN_DIR/R2Desk" "$MACOS_DIR/R2Desk"
 cp "$ROOT_DIR/Sources/R2Desk/Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
 cp "$ROOT_DIR/Sources/R2Desk/Resources/R2Desk.icns" "$RESOURCES_DIR/R2Desk.icns"
+lipo -info "$BIN_DIR/R2Desk"
 printf "APPL????" > "$CONTENTS_DIR/PkgInfo"
 
 chmod +x "$MACOS_DIR/R2Desk"
