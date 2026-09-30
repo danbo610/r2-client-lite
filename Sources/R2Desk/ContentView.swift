@@ -201,6 +201,112 @@ struct SidebarView: View {
 struct ObjectBrowserView: View {
     @EnvironmentObject private var state: AppState
 
+    private var refreshButton: some View {
+            Button {
+                Task { await state.refresh() }
+            } label: {
+                Label(L10n.t("refresh"), systemImage: "arrow.clockwise")
+            }
+            .help(L10n.t("refresh"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedBucket == nil || state.isLoading)
+            .keyboardShortcut("r", modifiers: .command)
+    }
+
+    private var uploadButton: some View {
+            Button {
+                state.upload()
+            } label: {
+                Label(L10n.t("upload"), systemImage: "square.and.arrow.up")
+            }
+            .help(L10n.t("upload"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedBucket == nil || state.isLoading)
+            .keyboardShortcut("u", modifiers: .command)
+    }
+
+    private var newFolderButton: some View {
+            Button {
+                state.showingNewFolder = true
+            } label: {
+                Label(L10n.t("new_folder"), systemImage: "folder.badge.plus")
+            }
+            .help(L10n.t("new_folder"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedBucket == nil || state.isLoading)
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+    }
+
+    private var openButton: some View {
+            Button {
+                if state.selectedCount == 1, let prefix = state.selectedPrefixes.first {
+                    state.enterPrefix(prefix.prefix)
+                } else {
+                    Task { await state.openSelectedObject() }
+                }
+            } label: {
+                Label(L10n.t("open"), systemImage: "arrow.up.right.square")
+            }
+            .help(L10n.t("open"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedCount != 1 || state.isLoading)
+            .keyboardShortcut(.return, modifiers: [])
+    }
+
+    private var downloadButton: some View {
+            Button {
+                state.downloadSelectedObjects()
+            } label: {
+                Label(L10n.t("download"), systemImage: "arrow.down.circle")
+            }
+            .help(L10n.t("download"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedObjectCount == 0 || state.selectedObjectCount != state.selectedCount || state.isLoading)
+            .keyboardShortcut("d", modifiers: .command)
+    }
+
+    private var renameButton: some View {
+            Button {
+                state.startRenameMove()
+            } label: {
+                Label(L10n.t("rename_move"), systemImage: "arrowshape.turn.up.right")
+            }
+            .help(L10n.t("rename_move"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedCount != 1 || state.selectedObjectCount != 1 || state.isLoading)
+    }
+
+    private var detailsButton: some View {
+            Button {
+                Task { await state.loadSelectedDetails() }
+            } label: {
+                Label(L10n.t("details"), systemImage: "info.circle")
+            }
+            .help(L10n.t("details"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedCount != 1 || state.selectedObjectCount != 1 || state.isLoading)
+    }
+
+    private var deleteButton: some View {
+            Button(role: .destructive) {
+                state.showingDeleteConfirm = true
+            } label: {
+                Label(L10n.t("delete"), systemImage: "trash")
+            }
+            .help(L10n.t("delete"))
+            .labelStyle(.titleAndIcon)
+            .font(.system(size: 11))
+            .disabled(state.selectedCount == 0 || state.isLoading)
+            .keyboardShortcut(.delete, modifiers: [])
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HeaderView()
@@ -247,95 +353,14 @@ struct ObjectBrowserView: View {
         }
         .toolbar {
             ToolbarItemGroup {
-                Button {
-                    Task { await state.refresh() }
-                } label: {
-                    Label(L10n.t("refresh"), systemImage: "arrow.clockwise")
-                }
-                .help(L10n.t("refresh"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedBucket == nil || state.isLoading)
-                .keyboardShortcut("r", modifiers: .command)
-
-                Button {
-                    state.upload()
-                } label: {
-                    Label(L10n.t("upload"), systemImage: "square.and.arrow.up")
-                }
-                .help(L10n.t("upload"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedBucket == nil || state.isLoading)
-                .keyboardShortcut("u", modifiers: .command)
-
-                Button {
-                    state.showingNewFolder = true
-                } label: {
-                    Label(L10n.t("new_folder"), systemImage: "folder.badge.plus")
-                }
-                .help(L10n.t("new_folder"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedBucket == nil || state.isLoading)
-                .keyboardShortcut("n", modifiers: [.command, .shift])
-
-                Button {
-                    if state.selectedCount == 1, let prefix = state.selectedPrefixes.first {
-                        state.enterPrefix(prefix.prefix)
-                    } else {
-                        Task { await state.openSelectedObject() }
-                    }
-                } label: {
-                    Label(L10n.t("open"), systemImage: "arrow.up.right.square")
-                }
-                .help(L10n.t("open"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedCount != 1 || state.isLoading)
-                .keyboardShortcut(.return, modifiers: [])
-
-                Button {
-                    state.downloadSelectedObjects()
-                } label: {
-                    Label(L10n.t("download"), systemImage: "arrow.down.circle")
-                }
-                .help(L10n.t("download"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedObjectCount == 0 || state.selectedObjectCount != state.selectedCount || state.isLoading)
-                .keyboardShortcut("d", modifiers: .command)
-
-                Button {
-                    state.startRenameMove()
-                } label: {
-                    Label(L10n.t("rename_move"), systemImage: "arrowshape.turn.up.right")
-                }
-                .help(L10n.t("rename_move"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedCount != 1 || state.selectedObjectCount != 1 || state.isLoading)
-
-                Button {
-                    Task { await state.loadSelectedDetails() }
-                } label: {
-                    Label(L10n.t("details"), systemImage: "info.circle")
-                }
-                .help(L10n.t("details"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedCount != 1 || state.selectedObjectCount != 1 || state.isLoading)
-
-                Button(role: .destructive) {
-                    state.showingDeleteConfirm = true
-                } label: {
-                    Label(L10n.t("delete"), systemImage: "trash")
-                }
-                .help(L10n.t("delete"))
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 11))
-                .disabled(state.selectedCount == 0 || state.isLoading)
-                .keyboardShortcut(.delete, modifiers: [])
+                refreshButton
+                uploadButton
+                newFolderButton
+                openButton
+                downloadButton
+                renameButton
+                detailsButton
+                deleteButton
             }
         }
         .alert(state.deleteConfirmationTitle, isPresented: $state.showingDeleteConfirm) {
